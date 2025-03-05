@@ -12,12 +12,13 @@ const Sidebar = () => {
       w="250px" 
       h="100vh" 
       
-      color="white" 
+      color="gray" 
       p="4"
       position="fixed"
       bg={theme === 'light' ? 'white' : 'black'}
+      
     >
-      <Text fontSize="xl" fontWeight="bold" mb="6">
+      <Text  fontSize="xl" fontWeight="bold" mb="6">
         Dashboard
       </Text>
       

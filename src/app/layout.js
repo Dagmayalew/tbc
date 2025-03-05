@@ -31,7 +31,7 @@ export default function RootLayout({ children }) {
         
         <Provider>
        
-        <ThemeProvider>
+        <ThemeProvider attribute="class" defaultTheme="system">
        
       {children }
       

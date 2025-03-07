@@ -46,6 +46,7 @@ export default function TasksPage() {
         "Content-type": "application/json; charset=UTF-8"
       }
     })
+    
       .then((response) => response.json())
       .then((data) => {
         console.log("New Post Added:", data);
@@ -98,46 +99,7 @@ export default function TasksPage() {
       })
       .catch((error) => console.error("Error deleting post:", error));
   };
-  
 
-  // WebSocket Connection
-  useEffect(() => {
-    const socketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || "ws://localhost:3000/ws"; 
-  
-    const ws = new WebSocket(socketUrl);
-  
-    ws.onopen = () => {
-      console.log("Connected to WebSocket");
-    };
-  
-    ws.onmessage = (event) => {
-      try {
-        const newTask = JSON.parse(event.data);
-        setTasks((prevTasks) => [newTask, ...prevTasks]);
-        showNotification("New Task Added", newTask.title);
-      } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
-      }
-    };
-  
-    ws.onclose = (event) => {
-      console.log("WebSocket Disconnected", event);
-      setTimeout(() => {
-        console.log("Reconnecting WebSocket...");
-        setSocket(new WebSocket(socketUrl));
-      }, 5000); // Try reconnecting after 5 seconds
-    };
-  
-    ws.onerror = (error) => {
-      console.error("WebSocket Error:", error);
-    };
-  
-    setSocket(ws);
-  
-    return () => {
-      ws.close();
-    };
-  }, []);
   
 
   // Show Browser Notification

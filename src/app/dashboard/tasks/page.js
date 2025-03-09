@@ -1,16 +1,31 @@
 "use client";
 import { useEffect, useState } from "react";
 import DashboardLayout from "../../components/dashlay/DashboardLayout";
-import { Box, Heading, Text, Container, Button } from "@chakra-ui/react";
+import { Box, Heading, Text, Container, Button, SimpleGrid } from "@chakra-ui/react";
 import { useTheme } from "next-themes";
+import { motion } from "framer-motion";
+
+// Animated Number Component
+const AnimatedNumber = ({ value }) => {
+  return (
+    <motion.span
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8 }}
+    >
+      {value}
+    </motion.span>
+  );
+};
 
 export default function TasksPage() {
   const { theme } = useTheme();
   const isLight = theme === "light";
 
   const [tasks, setTasks] = useState([]);
+  const [socket, setSocket] = useState(null);
 
-  // Fetch
+  // Fetch Initial Tasks
   useEffect(() => {
     fetch("https://jsonplaceholder.typicode.com/posts")
       .then((response) => response.json())
@@ -31,6 +46,7 @@ export default function TasksPage() {
         "Content-type": "application/json; charset=UTF-8"
       }
     })
+    
       .then((response) => response.json())
       .then((data) => {
         console.log("New Post Added:", data);
@@ -83,37 +99,66 @@ export default function TasksPage() {
       })
       .catch((error) => console.error("Error deleting post:", error));
   };
+
   
+
+  // Show Browser Notification
+  const showNotification = (title, body) => {
+    if (Notification.permission === "granted") {
+      new Notification(title, { body });
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          new Notification(title, { body });
+        }
+      });
+    }
+  };
+
+  const completedTasks = tasks.filter((_, index) => index % 2 === 0).length;
+  const pendingTasks = tasks.length - completedTasks;
 
   return (
     <DashboardLayout>
       <Container maxW="container.md" py={10}>
-        <Box
-          w="full"
-          p={6}
-          borderRadius="lg"
-          boxShadow="md"
-          bg={isLight ? "gray.100" : "gray.900"}
-          textAlign="center"
-        >
-          <Heading size="xl" color={isLight ? "gray.800" : "white"}>
-            Tasks Page
-          </Heading>
+        <Box w="full" p={6} borderRadius="lg" boxShadow="md" bg={isLight ? "gray.100" : "gray.900"} textAlign="center">
+          <Heading size="xl" color={isLight ? "gray.800" : "white"}>Tasks Page</Heading>
           <Text mt={4} fontSize="lg" color={isLight ? "gray.600" : "gray.300"}>
-            Manage your account tasks here.
+            Manage your tasks in real-time.
           </Text>
-
           <Button _hover={{ bg: "blue.600" }}  mt={4} colorScheme="blue" onClick={addNewPost}>
             Add New Post
           </Button>
+          {/* Animated Stats Widgets */}
+          <SimpleGrid columns={3} spacing={4} mt={6}>
+            <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.3 }}>
+              <Box p={4} borderRadius="md" bg="blue.500" color="white" textAlign="center">
+                <Heading size="md">Total Tasks</Heading>
+                <Text fontSize="2xl"><AnimatedNumber value={tasks.length} /></Text>
+              </Box>
+            </motion.div>
 
-          <Box mt={6} textAlign="left"  >
+            <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.3 }}>
+              <Box p={4} borderRadius="md" bg="green.500" color="white" textAlign="center">
+                <Heading size="md">Completed</Heading>
+                <Text fontSize="2xl"><AnimatedNumber value={completedTasks} /></Text>
+              </Box>
+            </motion.div>
+
+            <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.3 }}>
+              <Box p={4} borderRadius="md" bg="red.500" color="white" textAlign="center">
+                <Heading size="md">Pending</Heading>
+                <Text fontSize="2xl"><AnimatedNumber value={pendingTasks} /></Text>
+              </Box>
+            </motion.div>
+          </SimpleGrid>
+
+          {/* Task List */}
+          <Box mt={6} textAlign="left">
             {tasks.length > 0 ? (
-              tasks.slice(0, 20).map((task) => (
+              tasks.slice(0, 100).map((task) => (
                 <Box key={task.id} p={4} borderWidth="1px" borderRadius="md" mb={3}>
-                  <Heading size="md" color={isLight ? "gray.700" : "gray.200"}>
-                    {task.title}
-                  </Heading>
+                  <Heading size="md" color={isLight ? "gray.700" : "gray.200"}>{task.title}</Heading>
                   <Text color={isLight ? "gray.600" : "gray.400"}>{task.body}</Text>
                   <Button
                     mt={2}
@@ -137,14 +182,12 @@ export default function TasksPage() {
                 </Box>
               ))
             ) : (
-              <Text mt={4} color={isLight ? "gray.600" : "gray.400"}>
-                Loading tasks...
-              </Text>
+              <Text mt={4} color={isLight ? "gray.600" : "gray.400"}>Loading tasks...</Text>
             )}
           </Box>
-          
         </Box>
       </Container>
     </DashboardLayout>
   );
 }
+  
